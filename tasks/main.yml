@@ -7,14 +7,17 @@
     ruby_packages: "{{ __ruby_packages }}"
   when: ruby_packages is not defined
 
-- name: Include task OS-specific installation task setup-Debian
-  include_tasks: setup-Debian.yml
+- include_tasks: setup-RedHat.yml
+  when:
+    - not ruby_install_from_source
+    - ansible_os_family == 'RedHat'
+
+- include_tasks: setup-Debian.yml
   when:
     - not ruby_install_from_source
     - ansible_os_family == 'Debian'
 
-- name: Include task install ruby from source when ruby_install_from_source is true
-  include_tasks: install-from-source.yml
+- include_tasks: install-from-source.yml
   when: ruby_install_from_source
 
 - name: Add user installed RubyGems bin directory to global $PATH.
@@ -23,7 +26,6 @@
     dest: /etc/profile.d/rubygems.sh
     mode: 0644
 
-# Install Bundler and configured gems.
 - name: Install Bundler.
   gem: name=bundler state=present user_install=no
   when: ruby_install_bundler
